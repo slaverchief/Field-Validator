@@ -12,7 +12,7 @@ class BaseField:
 
     @classmethod
     def is_valid(cls, value):
-        return re.match(cls.pattern, value)
+        return re.match(cls.pattern, str(value))
 
 class EmailField(BaseField):
     display_name = 'email'
@@ -28,7 +28,7 @@ class DateField(BaseField):
 
     @classmethod
     def is_valid(cls, value):
-        match = re.match(DateField.pattern, value)
+        match = re.match(DateField.pattern, str(value))
         if match:
             year, month, day = map(int, match.groups())  # Извлекаем группы
             if not ((year <= 0 ) or (month <= 0 or month > 12) or (day <= 0 or day > 31)):
@@ -65,6 +65,6 @@ def determine_types(data):
                 field = FIELD(data[key])
                 determined_types[key] = field.display_name
                 break
-            except:
+            except InvalidFieldFormat:
                 determined_types[key] = 'text'
     return determined_types
