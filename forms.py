@@ -1,7 +1,9 @@
 import re
 from exceptions import InvalidFieldFormat
+from abc import ABC
 
-class BaseField:
+# Базовый абстрактный класс для всех типов полей.
+class BaseField(ABC):
     display_name = ''
     pattern = ""
 
@@ -10,9 +12,13 @@ class BaseField:
             raise InvalidFieldFormat
         self.value = text
 
+    # Метод, проводящий проверку, соответствует ли форма определенному шаблону, заданному регулярными выражениями.
     @classmethod
     def is_valid(cls, value):
         return re.match(cls.pattern, str(value))
+
+
+# Ниже перечислены все типы полей, указанные в ТЗ
 
 class EmailField(BaseField):
     display_name = 'email'
@@ -26,11 +32,12 @@ class DateField(BaseField):
     display_name = 'date'
     pattern = r"(\d{4})-(\d{2})-(\d{2})$"
 
+    # Переопределенный метод is_valid, чтобы проводилась проврека допустимой даты
     @classmethod
     def is_valid(cls, value):
         match = re.match(DateField.pattern, str(value))
         if match:
-            year, month, day = map(int, match.groups())  # Извлекаем группы
+            year, month, day = map(int, match.groups())
             if not ((year <= 0 ) or (month <= 0 or month > 12) or (day <= 0 or day > 31)):
                 if month == 2:
                     if year%4 == 0 and day > 29:
@@ -42,14 +49,18 @@ class DateField(BaseField):
                         return
                 return True
 
+
 FIELDS_LIST = [DateField, PhoneField, EmailField]
 
+# Проверка, есть ли в пришедшей от пользователя форме все поля, которые прописаны в форме, взятой из базы данных.
 def is_correct_form_containing(form, data):
     for key in list(form.keys())[1:]:
         if key not in data.keys():
             return
     return True
 
+
+# Функци, принимающая на вход список всех форм, записанных в базе данных и находящая среди них те, которые соответствуют пришедшим данным формы.
 def get_correct_form(forms, data):
     form_template = None
     for form in forms:
@@ -57,6 +68,7 @@ def get_correct_form(forms, data):
             form_template = form
     return form_template
 
+# Функция, прпнимающая на вход пришедшие данные формы и возвращаюая тип каждого поля.
 def determine_types(data):
     determined_types = {}
     for key in data.keys():
